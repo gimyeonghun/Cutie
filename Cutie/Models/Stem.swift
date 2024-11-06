@@ -7,7 +7,9 @@
 
 import Foundation
 
-struct Stem {
+struct Stem: Identifiable {
+    var id = UUID()
+    var title: String
     var info: Info?
     var questions: [Question]
     
@@ -23,6 +25,7 @@ struct Stem {
     }
     
     init() {
+        self.title = "Untitled Question"
         self.info = nil
         self.questions = []
     }
