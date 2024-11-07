@@ -6,94 +6,51 @@
 //
 
 import SwiftUI
+import SwiftData
 import VisionKit
 import Vision
 
 struct StemEditor: View {
-    @State private var stem = Stem()
-    @State var stemInfo = Stem.Info()
-    @State private var userInput = ""
+    var stem: Stem
+    //    @State private var stem = Stem()
+    //    @State var stemInfo = Stem.Info()
     
+    //
     @State private var showProcessStem: Bool = false
     @State private var showAddImages: Bool = false
+    //
+    //    @State private var selectedImage: NSImage? = nil
+    //
     
-    @State private var selectedImage: NSImage? = nil
+    @State private var stemTitle = ""
+    @State private var userInput = ""
+    
+    @Environment(\.modelContext) private var modelContext
     
     var body: some View {
-        HSplitView {
-            VStack(alignment: .leading) {
-                HStack {
-                    Spacer()
+        HStack {
+            processView
+                .frame(width: 400)
+            Divider()
+                .overlay(alignment: .center) {
                     Button {
-                        showProcessStem.toggle()
+                        let newQuestion = Question()
+                        modelContext.insert(newQuestion)
+                        newQuestion.options = insertOptions()
+                        newQuestion.stem = stem
                     } label: {
-                        Label("Recognise Text from Image", systemImage: "apple.image.playground")
+                        Label("Process", systemImage: "arrowshape.right")
                     }
-                    .controlSize(.extraLarge)
-                    .padding(.top, 4)
-                    Spacer()
-                }
-                TextEditor(text: $userInput)
-                    .font(.system(size: 14))
-                    .padding(.horizontal, 4)
-                HStack {
-                    Spacer()
-                    Button{
-                        var question = Question()
-                        question.options = insertOptions()
-                        stem.questions.append(question)
-                    } label: {
-                        Label("Process", systemImage: "arrow.right.circle")
-                    }
+                    .labelStyle(.iconOnly)
                     .controlSize(.large)
+                    .padding()
                 }
-            }
-            .frame(width: 400)
-            ScrollView {
-                Form {
-                    StemInfo(stemInfo: stemInfo)
-                    ScrollView(.horizontal) {
-                        HStack {
-                            ForEach(stem.images) { image in
-                                if let data = try? Data(contentsOf: image),
-                                   let nsImage = NSImage(data: data) {
-                                    Image(nsImage: nsImage)
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 300, height: 300)
-                                }
-                            }
-                        }
-                    }
-                    ForEach(stem.questions) { question in
-                        Section {
-                            HStack(alignment: .top) {
-                                Button {
-                                    if let index = stem.questions.firstIndex(of: question) {
-                                        stem.questions.remove(at: index)
-                                    }
-                                } label: {
-                                    Label("Remove", systemImage: "minus")
-                                        .labelStyle(.iconOnly)
-                                        .buttonStyle(.bordered)
-                                        .buttonBorderShape(.circle)
-                                }
-                                .disabled(stem.questions.count == 1)
-                                QuestionEditor(question: question)
-                            }
-                        }
-                    }
-                    .formStyle(.columns)
-                    .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-
-                }
-                .padding()
-            }
+            questionView
         }
         .toolbar {
             ToolbarItemGroup {
                 Button {
-                    showAddImages.toggle()
+                    
                 } label: {
                     Label("Add Stem Info", systemImage: "info.square")
                 }
@@ -107,27 +64,42 @@ struct StemEditor: View {
                 }
             }
         }
-        .fileImporter(isPresented: $showAddImages, allowedContentTypes: [.image]) { result in
-            switch result {
-            case .success(let fileURL):
-                stem.images.append(fileURL)
-            case .failure(let error):
-                print(error.localizedDescription)
+    }
+    
+    var processView: some View {
+        VStack(alignment: .leading) {
+            HStack {
+                Spacer()
+                Button {
+                    showProcessStem.toggle()
+                } label: {
+                    Label("Recognise Text from Image", systemImage: "apple.image.playground")
+                }
+                .controlSize(.extraLarge)
+                .padding(.top, 4)
+                Spacer()
             }
+            TextEditor(text: $userInput)
+                .font(.system(size: 14))
+                .padding(.horizontal, 4)
         }
-//        .fileImporter(isPresented: $showProcessStem, allowedContentTypes: [.image]) { result in
-//            switch result {
-//            case .success(let fileURL):
-//                if let data = try? Data(contentsOf: fileURL),
-//                   let nsImage = NSImage(data: data) {
-//                    recogniseText(from: nsImage)
-//                } else {
-//                    print("Error loading image")
-//                }
-//            case .failure(let error):
-//                print(error.localizedDescription)
-//            }
-//        }
+        .padding(4)
+    }
+    
+    var questionView: some View {
+        ScrollView {
+            Form {
+                TextField("Title", text: $stemTitle)
+                    .onAppear {
+                        stemTitle = stem.title
+                    }
+                    .onChange(of: stemTitle) {
+                        stem.title = stemTitle
+                    }
+                QuestionDetail(for: stem)
+            }
+            .formStyle(.columns)
+        }
     }
     
     private func recogniseText(from nsImage: NSImage) {
@@ -164,10 +136,12 @@ struct StemEditor: View {
     }
     
     private func addQuestion() {
-        stem.questions.append(.init())
+        let newQuestion = Question()
+        modelContext.insert(newQuestion)
+        newQuestion.stem = stem
     }
     
-    private func insertOptions() -> [Question.Option] {
+    private func insertOptions() -> [QuestionOption] {
         var possibleOptions: [String] = []
         
         let lines = userInput.split(separator: "\n")
@@ -176,14 +150,90 @@ struct StemEditor: View {
                 possibleOptions.append(String(capture.output.1))
             }
         }
-        return possibleOptions.map { Question.Option(text: $0) }
+        return possibleOptions.map { QuestionOption(text: $0) }
     }
 }
 
-extension URL: @retroactive Identifiable {
-    public var id: String { self.absoluteString }
+private struct QuestionDetail: View {
+    @Environment(\.modelContext) private var modelContext
+    let stem: Stem
+    @Query(sort:\Question.dateCreated) private var questions: [Question]
+    
+    init(for stem: Stem) {
+        let id = stem.id
+        let predicate = #Predicate<Question> { question in
+            question.stem?.id == id
+        }
+        self.stem = stem
+        _questions = Query(filter: predicate, sort:\.dateCreated)
+    }
+    
+    var body: some View {
+        ForEach(questions) { question in
+            Section {
+                HStack(alignment: .top) {
+                    Button {
+                        modelContext.delete(question)
+                    } label: {
+                        Label("Remove", systemImage: "minus")
+                            .labelStyle(.iconOnly)
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.circle)
+                    }
+                    .disabled(stem.questions?.count == 1)
+                    QuestionEditor(question: question)
+                }
+            }
+        }
+    }
 }
+//        HSplitView {
+//            ScrollView {
+//                Form {
+//                    StemInfoEditor(stemInfo: stemInfo)
+//                    ScrollView(.horizontal) {
+//                        HStack {
+//                            ForEach(stem.images) { image in
+//                                if let data = try? Data(contentsOf: image),
+//                                   let nsImage = NSImage(data: data) {
+//                                    Image(nsImage: nsImage)
+//                                        .resizable()
+//                                        .scaledToFit()
+//                                        .frame(width: 300, height: 300)
+//                                }
+//                            }
+//                        }
+//                    }
+//                .padding()
+//            }
+//        }
 
-#Preview {
-    StemEditor()
-}
+//        .fileImporter(isPresented: $showAddImages, allowedContentTypes: [.image]) { result in
+//            switch result {
+//            case .success(let fileURL):
+//                stem.images.append(fileURL)
+//            case .failure(let error):
+//                print(error.localizedDescription)
+//            }
+//        }
+////        .fileImporter(isPresented: $showProcessStem, allowedContentTypes: [.image]) { result in
+////            switch result {
+////            case .success(let fileURL):
+////                if let data = try? Data(contentsOf: fileURL),
+////                   let nsImage = NSImage(data: data) {
+////                    recogniseText(from: nsImage)
+////                } else {
+////                    print("Error loading image")
+////                }
+////            case .failure(let error):
+////                print(error.localizedDescription)
+////            }
+////        }
+//    }
+//    
+
+//}
+
+//#Preview {
+//    StemEditor()
+//}

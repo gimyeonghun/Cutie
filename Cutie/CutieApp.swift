@@ -11,7 +11,7 @@ import SwiftData
 @main
 struct CutieApp: App {
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([ ])
+        let schema = Schema([Exam.self, Question.self, Stem.self])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {

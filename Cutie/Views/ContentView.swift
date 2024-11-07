@@ -6,30 +6,60 @@
 //
 
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @State var stems: [Stem] = []
+    @Environment(\.modelContext) private var modelContext
+    
+    @Query(sort: \Exam.title) private var exams: [Exam]
+    
+    @State private var showExamEditor: Bool = false
+    
+    @State private var path: NavigationPath? = nil
+    @State private var detail: DetailPath? = nil
+    
     var body: some View {
         NavigationSplitView {
-            List {
-                ForEach(stems) { stem in
-                    Text(stem.title)
+            List(selection: $path) {
+                ForEach(exams) { exam in
+                    NavigationLink(value: NavigationPath.exam(exam)) {
+                        Text(exam.title)
+                    }
                 }
             }
             .toolbar {
                 Button {
-                    stems.append(Stem())
+                    let newExam = Exam(title: "New Exam")
+                    modelContext.insert(newExam)
+                    //                    showExamEditor.toggle()
                 } label: {
-                    Label("Add Stem", systemImage: "plus")
+                    Label("Add Exam", systemImage: "rectangle.stack.badge.plus")
+                }
+            }
+            .frame(minWidth: 180)
+        } content: {
+            Group {
+                switch path {
+                case .exam(let exam):
+                    StemDetail(for: exam, selection: $detail)
+                case .none:
+                    ContentUnavailableView("No Exam Selected", systemImage: "film.stack.fill")
                 }
             }
         } detail: {
-            StemEditor()
+            Group {
+                switch detail {
+                case .stem(let stem):
+                    StemEditor(stem: stem)
+                case .none:
+                    EmptyView()
+                }
+            }
         }
     }
 }
 
 #Preview {
     ContentView()
-        .padding()
+        .previewEnvironment()
 }
