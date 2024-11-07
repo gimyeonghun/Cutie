@@ -6,12 +6,14 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct Stem: Identifiable {
     var id = UUID()
     var title: String
     var info: Info?
     var questions: [Question]
+    var images: [URL]
     
     struct Info {
         var background: String
@@ -28,5 +30,6 @@ struct Stem: Identifiable {
         self.title = "Untitled Question"
         self.info = nil
         self.questions = []
+        self.images = []
     }
 }

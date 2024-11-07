@@ -14,7 +14,6 @@ struct Question: Identifiable, Equatable {
     var textbox: String
     var answerType: AnswerType
     var speciality: Speciality
-    var images: [Image]
     var options: [Option]
     
     init() {
@@ -22,7 +21,6 @@ struct Question: Identifiable, Equatable {
         self.textbox = ""
         self.answerType = .multiple
         self.speciality = .oralMed
-        self.images = []
         self.options = [Option()]
     }
     
