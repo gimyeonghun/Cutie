@@ -23,7 +23,18 @@ struct Stem: Identifiable {
         var medicalHistory: String
         var extraOral: String
         var intraOral: String
-        var additional: String?
+        var additional: String
+        
+        init() {
+            self.background = ""
+            self.complaint = ""
+            self.complaintHistory = ""
+            self.dentalHistory = ""
+            self.medicalHistory = ""
+            self.extraOral = ""
+            self.intraOral = ""
+            self.additional = ""
+        }
     }
     
     init() {

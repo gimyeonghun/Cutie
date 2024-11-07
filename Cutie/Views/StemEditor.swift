@@ -11,27 +11,47 @@ import Vision
 
 struct StemEditor: View {
     @State private var stem = Stem()
+    @State var stemInfo = Stem.Info()
     @State private var userInput = ""
     
-    @State private var showFileDialog: Bool = false
+    @State private var showProcessStem: Bool = false
+    @State private var showAddImages: Bool = false
     
     @State private var selectedImage: NSImage? = nil
     
     var body: some View {
         HSplitView {
             VStack(alignment: .leading) {
+                HStack {
+                    Spacer()
+                    Button {
+                        showProcessStem.toggle()
+                    } label: {
+                        Label("Recognise Text from Image", systemImage: "apple.image.playground")
+                    }
+                    .controlSize(.extraLarge)
+                    .padding(.top, 4)
+                    Spacer()
+                }
                 TextEditor(text: $userInput)
                     .font(.system(size: 14))
-                    .frame(width: 400)
-                    .padding(4)
-                Button("Process") {
-                    var question = Question()
-                    question.options = insertOptions()
-                    stem.questions.append(question)
+                    .padding(.horizontal, 4)
+                HStack {
+                    Spacer()
+                    Button{
+                        var question = Question()
+                        question.options = insertOptions()
+                        stem.questions.append(question)
+                    } label: {
+                        Label("Process", systemImage: "arrow.right.circle")
+                    }
+                    .controlSize(.large)
                 }
             }
+            .frame(width: 400)
             ScrollView {
                 Form {
+                    StemInfo(stemInfo: stemInfo)
                     ScrollView(.horizontal) {
                         HStack {
                             ForEach(stem.images) { image in
@@ -41,24 +61,6 @@ struct StemEditor: View {
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 300, height: 300)
-                                        .onAppear {
-                                            guard let cgImage = nsImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
-                                            
-                                            // Create a new image-request handler.
-                                            let requestHandler = VNImageRequestHandler(cgImage: cgImage)
-                                            
-                                            
-                                            // Create a new request to recognize text.
-                                            let request = VNRecognizeTextRequest(completionHandler: recognizeTextHandler)
-                                            
-                                            
-                                            do {
-                                                // Perform the text-recognition request.
-                                                try requestHandler.perform([request])
-                                            } catch {
-                                                print("Unable to perform the requests: \(error).")
-                                            }
-                                        }
                                 }
                             }
                         }
@@ -91,12 +93,12 @@ struct StemEditor: View {
         .toolbar {
             ToolbarItemGroup {
                 Button {
-                    
+                    showAddImages.toggle()
                 } label: {
                     Label("Add Stem Info", systemImage: "info.square")
                 }
                 Button {
-                    showFileDialog.toggle()
+                    showAddImages.toggle()
                 } label: {
                     Label("Add Image", systemImage: "photo.badge.plus.fill")
                 }
@@ -105,7 +107,7 @@ struct StemEditor: View {
                 }
             }
         }
-        .fileImporter(isPresented: $showFileDialog, allowedContentTypes: [.image]) { result in
+        .fileImporter(isPresented: $showAddImages, allowedContentTypes: [.image]) { result in
             switch result {
             case .success(let fileURL):
                 stem.images.append(fileURL)
@@ -113,9 +115,41 @@ struct StemEditor: View {
                 print(error.localizedDescription)
             }
         }
+//        .fileImporter(isPresented: $showProcessStem, allowedContentTypes: [.image]) { result in
+//            switch result {
+//            case .success(let fileURL):
+//                if let data = try? Data(contentsOf: fileURL),
+//                   let nsImage = NSImage(data: data) {
+//                    recogniseText(from: nsImage)
+//                } else {
+//                    print("Error loading image")
+//                }
+//            case .failure(let error):
+//                print(error.localizedDescription)
+//            }
+//        }
     }
     
-    func recognizeTextHandler(request: VNRequest, error: Error?) {
+    private func recogniseText(from nsImage: NSImage) {
+        guard let cgImage = nsImage.cgImage(forProposedRect: nil, context: nil, hints: nil) else { return }
+        
+        // Create a new image-request handler.
+        let requestHandler = VNImageRequestHandler(cgImage: cgImage)
+        
+        
+        // Create a new request to recognize text.
+        let request = VNRecognizeTextRequest(completionHandler: recognizeTextHandler)
+        
+        
+        do {
+            // Perform the text-recognition request.
+            try requestHandler.perform([request])
+        } catch {
+            print("Unable to perform the requests: \(error).")
+        }
+    }
+    
+    private func recognizeTextHandler(request: VNRequest, error: Error?) {
         guard let observations =
                 request.results as? [VNRecognizedTextObservation] else {
             return
@@ -126,18 +160,7 @@ struct StemEditor: View {
         }
         
         // Process the recognized strings.
-        print(recognizedStrings)
-    }
-    
-    private func loadImage(from url: URL) {
-        // Try loading the data from the file URL
-        if let imageData = try? Data(contentsOf: url),
-           let nsImage = NSImage(data: imageData) {
-            // Set the selected image
-            selectedImage = nsImage
-        } else {
-            print("Failed to load image from URL: \(url)")
-        }
+        userInput = recognizedStrings.joined(separator: "\n")
     }
     
     private func addQuestion() {
@@ -159,4 +182,8 @@ struct StemEditor: View {
 
 extension URL: @retroactive Identifiable {
     public var id: String { self.absoluteString }
+}
+
+#Preview {
+    StemEditor()
 }
