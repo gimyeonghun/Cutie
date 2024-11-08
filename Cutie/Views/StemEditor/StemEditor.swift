@@ -18,6 +18,8 @@ struct StemEditor: View {
     //
     @State private var showProcessStem: Bool = false
     @State private var showAddImages: Bool = false
+    
+    @State private var showInfoSheet: Bool = false
     //
     //    @State private var selectedImage: NSImage? = nil
     //
@@ -30,7 +32,7 @@ struct StemEditor: View {
     var body: some View {
         HStack {
             processView
-                .frame(width: 400)
+                .frame(width: 300)
             Divider()
                 .overlay(alignment: .center) {
                     Button {
@@ -50,7 +52,7 @@ struct StemEditor: View {
         .toolbar {
             ToolbarItemGroup {
                 Button {
-                    
+                    showInfoSheet.toggle()
                 } label: {
                     Label("Add Stem Info", systemImage: "info.square")
                 }
@@ -63,6 +65,9 @@ struct StemEditor: View {
                     Label("Add Item", systemImage: "plus.square.on.square")
                 }
             }
+        }
+        .sheet(isPresented: $showInfoSheet) {
+            StemInfoSheet(stem: stem)
         }
     }
     
@@ -82,6 +87,7 @@ struct StemEditor: View {
             TextEditor(text: $userInput)
                 .font(.system(size: 14))
                 .padding(.horizontal, 4)
+                .frame(width: 300, height: 300)
         }
         .padding(4)
     }
@@ -96,9 +102,11 @@ struct StemEditor: View {
                     .onChange(of: stemTitle) {
                         stem.title = stemTitle
                     }
+                StemInfoEditor(stemInfo: stem.info)
                 QuestionDetail(for: stem)
             }
             .formStyle(.columns)
+            .safeAreaPadding(10)
         }
     }
     
@@ -216,18 +224,18 @@ private struct QuestionDetail: View {
 //                print(error.localizedDescription)
 //            }
 //        }
-////        .fileImporter(isPresented: $showProcessStem, allowedContentTypes: [.image]) { result in
-////            switch result {
-////            case .success(let fileURL):
-////                if let data = try? Data(contentsOf: fileURL),
-////                   let nsImage = NSImage(data: data) {
-////                    recogniseText(from: nsImage)
-////                } else {
-////                    print("Error loading image")
-////                }
-////            case .failure(let error):
-////                print(error.localizedDescription)
-////            }
+//        .fileImporter(isPresented: $showProcessStem, allowedContentTypes: [.image]) { result in
+//            switch result {
+//            case .success(let fileURL):
+//                if let data = try? Data(contentsOf: fileURL),
+//                   let nsImage = NSImage(data: data) {
+//                    recogniseText(from: nsImage)
+//                } else {
+//                    print("Error loading image")
+//                }
+//            case .failure(let error):
+//                print(error.localizedDescription)
+//            }
 ////        }
 //    }
 //    

@@ -45,6 +45,17 @@ final class StemInfo {
     // MARK: Relationships
     var stem: Stem?
     
+    init(background: String, complaint: String, complaintHistory: String, dentalHistory: String, medicalHistory: String, extraOral: String, intraOral: String, additional: String) {
+        self.background = background
+        self.complaint = complaint
+        self.complaintHistory = complaintHistory
+        self.dentalHistory = dentalHistory
+        self.medicalHistory = medicalHistory
+        self.extraOral = extraOral
+        self.intraOral = intraOral
+        self.additional = additional
+    }
+    
     init() {
         self.background = ""
         self.complaint = ""

@@ -85,10 +85,36 @@ final class QuestionPrescription: Identifiable, Equatable {
 }
 
 
-enum AnswerType: Int, CaseIterable, Codable {
+enum AnswerType: Int, Identifiable, CaseIterable, Codable {
     case text, single, multiple
+    
+    var id: Int { rawValue }
+    
+    var label: String {
+        switch self {
+        case .text: return "Prescription"
+        case .single: return "Single Answer"
+        case .multiple: return "Multiple Answers"
+        }
+    }
 }
 
-enum Speciality: Int, CaseIterable, Codable {
+enum Speciality: Int, Identifiable, CaseIterable, Codable {
     case oralMed, perio, endo, pros, ortho, resto, surgery, pain, medicalEmergency
+    
+    var id: Int { rawValue }
+    
+    var label: String {
+        switch self {
+        case .oralMed: return "Oral Medicine"
+        case .perio: return "Periodontics"
+        case .endo: return "Endodontics"
+        case .pros: return "Prosthodontics"
+        case .ortho: return "Orthdontics"
+        case .resto: return "Restorative Dentistry"
+        case .surgery: return "Oral Surgery"
+        case .pain: return "Pain Management"
+        case .medicalEmergency: return "Medical Emergency"
+        }
+    }
 }
