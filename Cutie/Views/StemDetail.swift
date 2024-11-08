@@ -42,6 +42,7 @@ struct StemDetail: View {
         .toolbar {
             Button {
                 let newStem = Stem()
+                newStem.title = "Question \(stems.count + 1)"
                 modelContext.insert(newStem)
                 newStem.exam = exam
             } label: {

@@ -41,7 +41,7 @@ final class Question: Identifiable, Equatable {
 final class QuestionOption: Identifiable, Equatable {
     var id = UUID()
     var text: String
-    var value: Int
+    var value: Float
     var isCorrect: Bool
     
     var dateCreated: Date = Date()

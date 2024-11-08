@@ -13,7 +13,13 @@ struct MultipleChoiceOption: View {
     
     @State private var isCorrect: Bool = false
     @State private var text: String = ""
-    @State private var value: Int = 0
+    @State private var value: Float = 0
+    
+    let formatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter
+    }()
     
     var body : some View {
         HStack {
@@ -26,7 +32,7 @@ struct MultipleChoiceOption: View {
                 .onChange(of: text) {
                     option.text = text
                 }
-            TextField("Value", value: $value, format: .number)
+            TextField("Value", value: $value, formatter: formatter)
                 .onChange(of: value) {
                     option.value = value
                 }

@@ -14,13 +14,14 @@ final class Stem: Identifiable {
     var id = UUID()
     var title: String
     
-    @Attribute(.externalStorage) var images: [Data]
-    
     // MARK: Relationships
     var exam: Exam?
     
     @Relationship(deleteRule: .cascade, inverse: \Question.stem)
     var questions: [Question]?
+    
+    @Relationship(deleteRule: .cascade, inverse: \Figure.stem)
+    var images: [Figure]?
     
     @Relationship(deleteRule: .cascade, inverse: \StemInfo.stem)
     var info: StemInfo?

@@ -12,22 +12,21 @@ import Vision
 
 struct StemEditor: View {
     var stem: Stem
-    //    @State private var stem = Stem()
-    //    @State var stemInfo = Stem.Info()
     
-    //
-    @State private var showProcessStem: Bool = false
-    @State private var showAddImages: Bool = false
+    @State private var showFilePicker: Bool = false
     
     @State private var showInfoSheet: Bool = false
-    //
-    //    @State private var selectedImage: NSImage? = nil
-    //
-    
+
     @State private var stemTitle = ""
     @State private var userInput = ""
+    @State private var importType: ImportType = .attachment
     
     @Environment(\.modelContext) private var modelContext
+    
+    enum ImportType {
+        case attachment
+        case processImage
+    }
     
     var body: some View {
         HStack {
@@ -57,7 +56,8 @@ struct StemEditor: View {
                     Label("Add Stem Info", systemImage: "info.square")
                 }
                 Button {
-                    showAddImages.toggle()
+                    importType = .attachment
+                    showFilePicker.toggle()
                 } label: {
                     Label("Add Image", systemImage: "photo.badge.plus.fill")
                 }
@@ -69,6 +69,25 @@ struct StemEditor: View {
         .sheet(isPresented: $showInfoSheet) {
             StemInfoSheet(stem: stem)
         }
+        .fileImporter(isPresented: $showFilePicker, allowedContentTypes: [.image]) { result in
+            switch result {
+            case .success(let fileURL):
+                guard let data = try? Data(contentsOf: fileURL) else { return }
+                
+                guard importType == .processImage else {
+                    let newFigure = Figure(data)
+                    modelContext.insert(newFigure)
+                    newFigure.stem = stem
+                    return
+                }
+                
+                if let nsImage = NSImage(data: data) {
+                    recogniseText(from: nsImage)
+                }
+            case .failure(let error):
+                print(error.localizedDescription)
+            }
+        }
     }
     
     var processView: some View {
@@ -76,7 +95,8 @@ struct StemEditor: View {
             HStack {
                 Spacer()
                 Button {
-                    showProcessStem.toggle()
+                    importType = .processImage
+                    showFilePicker.toggle()
                 } label: {
                     Label("Recognise Text from Image", systemImage: "apple.image.playground")
                 }
@@ -87,7 +107,7 @@ struct StemEditor: View {
             TextEditor(text: $userInput)
                 .font(.system(size: 14))
                 .padding(.horizontal, 4)
-                .frame(width: 300, height: 300)
+                .frame(width: 300)
         }
         .padding(4)
     }
@@ -103,6 +123,7 @@ struct StemEditor: View {
                         stem.title = stemTitle
                     }
                 StemInfoEditor(stemInfo: stem.info)
+                StemFigures(for: stem)
                 QuestionDetail(for: stem)
             }
             .formStyle(.columns)
@@ -154,7 +175,7 @@ struct StemEditor: View {
         
         let lines = userInput.split(separator: "\n")
         lines.forEach { line in
-            if let capture = line.firstMatch(of: /[A-Z]\. ([\w ]+)/) {
+            if let capture = line.firstMatch(of: /[A-Z]\. ([\w\d\.\- ]+)/) {
                 possibleOptions.append(String(capture.output.1))
             }
         }
@@ -199,43 +220,13 @@ private struct QuestionDetail: View {
 //            ScrollView {
 //                Form {
 //                    StemInfoEditor(stemInfo: stemInfo)
-//                    ScrollView(.horizontal) {
-//                        HStack {
-//                            ForEach(stem.images) { image in
-//                                if let data = try? Data(contentsOf: image),
-//                                   let nsImage = NSImage(data: data) {
-//                                    Image(nsImage: nsImage)
-//                                        .resizable()
-//                                        .scaledToFit()
-//                                        .frame(width: 300, height: 300)
-//                                }
-//                            }
-//                        }
-//                    }
+
 //                .padding()
 //            }
 //        }
 
-//        .fileImporter(isPresented: $showAddImages, allowedContentTypes: [.image]) { result in
-//            switch result {
-//            case .success(let fileURL):
-//                stem.images.append(fileURL)
-//            case .failure(let error):
-//                print(error.localizedDescription)
-//            }
-//        }
-//        .fileImporter(isPresented: $showProcessStem, allowedContentTypes: [.image]) { result in
-//            switch result {
-//            case .success(let fileURL):
-//                if let data = try? Data(contentsOf: fileURL),
-//                   let nsImage = NSImage(data: data) {
-//                    recogniseText(from: nsImage)
-//                } else {
-//                    print("Error loading image")
-//                }
-//            case .failure(let error):
-//                print(error.localizedDescription)
-//            }
+
+
 ////        }
 //    }
 //    
