@@ -119,10 +119,12 @@ struct StemEditor: View {
                     .onAppear {
                         stemTitle = stem.title
                     }
-                    .onChange(of: stemTitle) {
+                    .onSubmit {
                         stem.title = stemTitle
                     }
-                StemInfoEditor(stemInfo: stem.info)
+                    .id(stem.id)
+                StemInfoEditor(for: stem)
+                    .id(stem.id)
                 StemFigures(for: stem)
                 QuestionDetail(for: stem)
             }

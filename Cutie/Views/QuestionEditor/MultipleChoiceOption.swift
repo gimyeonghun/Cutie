@@ -25,15 +25,17 @@ struct MultipleChoiceOption: View {
         HStack {
             Toggle("Correct", isOn: $isCorrect)
                 .onChange(of: isCorrect) {
-                    value = 0
+                    if !isCorrect {
+                        value = 0
+                    }
                     option.isCorrect = isCorrect
                 }
             TextField("Question", text: $text)
-                .onChange(of: text) {
+                .onSubmit {
                     option.text = text
                 }
             TextField("Value", value: $value, formatter: formatter)
-                .onChange(of: value) {
+                .onSubmit {
                     option.value = value
                 }
                 .frame(width: 50)

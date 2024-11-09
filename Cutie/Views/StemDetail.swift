@@ -13,16 +13,27 @@ struct StemDetail: View {
     @Binding var selection: DetailPath?
     
     @Query(sort: \Stem.title) private var stems: [Stem]
+    @Query private var questions: [Question]
     
     @Environment(\.modelContext) private var modelContext
     
     init(for exam: Exam, selection: Binding<DetailPath?>) {
-        let id = exam.id
-        let predicate = #Predicate<Stem> { stem in
-            stem.exam?.id == id
+        let examId = exam.id
+        let stemPredicate = #Predicate<Stem> { stem in
+            stem.exam?.id == examId
         }
         self.exam = exam
-        _stems = Query(filter: predicate, sort:\.title)
+        _stems = Query(filter: stemPredicate, sort: [SortDescriptor(\Stem.title, comparator: .localizedStandard)])
+        
+        let qPredicate = #Predicate<Question> { question in
+            if let stem = question.stem {
+                return stem.exam?.id == examId
+            } else {
+                return false
+            }
+        }
+        _questions = Query(filter: qPredicate)
+        
         _selection = selection
     }
     
@@ -32,6 +43,13 @@ struct StemDetail: View {
                 ForEach(stems) { stem in
                     NavigationLink(value: DetailPath.stem(stem)) {
                         Text(stem.title)
+                            .swipeActions {
+                                Button(role: .destructive) {
+                                    deleteStem(stem)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                     }
                 }
             }
@@ -42,7 +60,7 @@ struct StemDetail: View {
         .toolbar {
             Button {
                 let newStem = Stem()
-                newStem.title = "Question \(stems.count + 1)"
+                newStem.title = "Question \(questions.count + 1)"
                 modelContext.insert(newStem)
                 newStem.exam = exam
             } label: {
@@ -50,5 +68,9 @@ struct StemDetail: View {
             }
         }
         .frame(minWidth: 180)
+    }
+    
+    private func deleteStem(_ stem: Stem) {
+        modelContext.delete(stem)
     }
 }

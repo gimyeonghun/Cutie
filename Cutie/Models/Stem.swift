@@ -33,7 +33,8 @@ final class Stem: Identifiable {
 }
 
 @Model
-final class StemInfo {
+final class StemInfo: Identifiable {
+    var id: UUID = UUID()
     var background: String
     var complaint: String
     var complaintHistory: String

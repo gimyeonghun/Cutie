@@ -21,7 +21,7 @@ struct QuestionEditor: View {
         VStack(alignment: .leading) {
             TextField("Prompt", text: $promptText, axis: .vertical)
                 .lineLimit(2...)
-                .onChange(of: promptText) {
+                .onSubmit {
                     question.prompt = promptText
                 }
             Picker("Speciality", selection: $specialityPicker) {
