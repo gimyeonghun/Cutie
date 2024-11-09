@@ -49,16 +49,11 @@ private struct QuestionList: View {
     
     init(exam: Exam, searchText: Binding<String>, searchTokens: Binding<[Speciality]>, count: Binding<Int>) {
         let tokens = searchTokens.wrappedValue.map { $0.rawValue }
-        let search = searchText.wrappedValue
         let examId = exam.id
         
         let predicate = #Predicate<Question> { question in
-            if let options = question.options {
-                if let stem = question.stem {
-                    return stem.exam?.id == examId && tokens.contains(question.rawSpeciality) && options.contains(where: { $0.text == search })
-                } else {
-                    return false
-                }
+            if let stem = question.stem {
+                return stem.exam?.id == examId && tokens.contains(question.rawSpeciality)
             } else {
                 return false
             }
