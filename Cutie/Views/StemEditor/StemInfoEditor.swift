@@ -9,6 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct StemInfoEditor: View {
+    @Environment(\.modelContext) private var modelContext
     @Query private var stemInfos: [StemInfo]
     
     let stem: Stem
@@ -33,46 +34,58 @@ struct StemInfoEditor: View {
     
     var body: some View {
         ForEach(stemInfos) { stemInfo in
-            TextField("Background", text: $background, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.background = background
+            HStack(alignment: .top) {
+                Button {
+                    modelContext.delete(stemInfo)
+                } label: {
+                    Label("Remove", systemImage: "minus")
+                        .labelStyle(.iconOnly)
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.circle)
                 }
-            TextField("Complaint", text: $complaint, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.complaint = complaint
+                VStack {
+                    TextField("Background", text: $background, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.background = background
+                        }
+                    TextField("Complaint", text: $complaint, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.complaint = complaint
+                        }
+                    TextField("Complaint History", text: $complaintHistory, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.complaintHistory = complaintHistory
+                        }
+                    TextField("Dental History", text: $dentalHistory, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.dentalHistory = dentalHistory
+                        }
+                    TextField("Medical History", text: $medicalHistory, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.medicalHistory = medicalHistory
+                        }
+                    TextField("Extraoral", text: $extraOral, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.extraOral = extraOral
+                        }
+                    TextField("Intraoral", text: $intraOral, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.intraOral = intraOral
+                        }
+                    TextField("Additional", text: $additional, axis: .vertical)
+                        .lineLimit(1...)
+                        .onSubmit {
+                            stemInfo.additional = additional
+                        }
                 }
-            TextField("Complaint History", text: $complaintHistory, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.complaintHistory = complaintHistory
-                }
-            TextField("Dental History", text: $dentalHistory, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.dentalHistory = dentalHistory
-                }
-            TextField("Medical History", text: $medicalHistory, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.medicalHistory = medicalHistory
-                }
-            TextField("Extraoral", text: $extraOral, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.extraOral = extraOral
-                }
-            TextField("Intraoral", text: $intraOral, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.intraOral = intraOral
-                }
-            TextField("Additional", text: $additional, axis: .vertical)
-                .lineLimit(1...)
-                .onSubmit {
-                    stemInfo.additional = additional
-                }
+            }
             .onAppear {
                 background = stemInfo.background
                 complaint = stemInfo.complaint

@@ -9,6 +9,7 @@ import SwiftUI
 
 enum NavigationPath: Hashable {
     case exam(_ exam: Exam)
+    case isSearching
 }
 
 enum DetailPath: Hashable {
