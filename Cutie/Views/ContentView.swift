@@ -22,21 +22,27 @@ struct ContentView: View {
     @State private var searchText: String = ""
     @State private var searchTokens: [Speciality] = []
     
-    
     var body: some View {
         NavigationSplitView {
             Section {
                 List(selection: $path) {
-                    ForEach(exams) { exam in
-                        NavigationLink(value: NavigationPath.exam(exam)) {
-                            Text(exam.title)
+                    Section {
+                        NavigationLink(value: NavigationPath.test) {
+                            Label("Test Time!", systemImage: "steeringwheel.and.hands")
                         }
-                        .swipeActions {
-                            Button {
-                                examEditor = exam
-                            } label: {
-                                Label("Rename", systemImage: "pencil")
-                                    .tint(.blue)
+                    }
+                    Section("Collections") {
+                        ForEach(exams) { exam in
+                            NavigationLink(value: NavigationPath.exam(exam)) {
+                                Text(exam.title)
+                            }
+                            .swipeActions {
+                                Button {
+                                    examEditor = exam
+                                } label: {
+                                    Label("Rename", systemImage: "pencil")
+                                        .tint(.blue)
+                                }
                             }
                         }
                     }
@@ -53,6 +59,8 @@ struct ContentView: View {
         } content: {
             Group {
                 switch path {
+                case .test:
+                    TestDetail(selection: $detail)
                 case .exam(let exam):
                     StemDetail(for: exam, selection: $detail)
                 case .isSearching:
@@ -72,6 +80,10 @@ struct ContentView: View {
                 switch detail {
                 case .stem(let stem):
                     StemEditor(stem: stem)
+                case .exam(let exam):
+                    ExaminationView(exam: exam)
+                case .quiz(let quiz):
+                    Text(quiz.label)
                 case .none:
                     EmptyView()
                 }

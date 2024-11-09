@@ -8,35 +8,13 @@
 import SwiftUI
 
 enum NavigationPath: Hashable {
+    case test
     case exam(_ exam: Exam)
     case isSearching
 }
 
 enum DetailPath: Hashable {
     case stem(_ stem: Stem)
+    case exam(_ exam: Exam)
+    case quiz(_ speciality: Speciality)
 }
-//    case feed(_ article: HMCDArticle)
-//    case list(from: Int, context: DocumentQuery)
-//    case inboxGroup(_ article: HMCDArticle)
-//    case libraryGroup(_ document: HMCDDocument)
-//    
-//    var summary: String {
-//        switch self {
-//        case .feed(let article):
-//            return "Feed: \(article.uuid.uuidString)"
-//        case .list(let index, let context):
-//            return "List(index: \(index), context: \(context.description))"
-//        case .inboxGroup(let article):
-//            return "Inbox: \(article.uuid.uuidString)"
-//        case .libraryGroup(let document):
-//            return "Library: \(document.uuid.uuidString)"
-//        }
-//    }
-//    static func == (lhs: DetailPath, rhs: DetailPath) -> Bool {
-//        lhs.hashValue == rhs.hashValue
-//    }
-//    
-//    func hash(into hasher: inout Hasher) {
-//        hasher.combine(summary)
-//    }
-//}
