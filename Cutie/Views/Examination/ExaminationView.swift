@@ -15,6 +15,13 @@ struct ExaminationView: View {
     @State private var currentQuestion: Question?
     @State private var currentIndex: Int = 0
     
+    @State private var showNavigator: Bool = false
+    @State private var showReport: Bool = false
+    
+    @State private var progress: Set<QuestionContainer> = []
+    
+    let exam: Exam
+    
     init(exam: Exam) {
         let id = exam.id
         
@@ -26,31 +33,51 @@ struct ExaminationView: View {
             }
         }
         
+        self.exam = exam
+        
         _questions = Query(filter: predicate)
     }
     
     var body: some View {
         VStack(alignment: .leading) {
-            if let currentQuestion {
-                ExamScreen(question: currentQuestion)
+            if let currentQuestion,
+               let stem = currentQuestion.stem {
+                Text("Question \(currentIndex + 1)")
+                    .font(.largeTitle)
+                    .padding()
+                ExamScreen(stem: stem, index: currentIndex, question: currentQuestion, progress: $progress)
+                    .id(currentQuestion.id)
             } else {
                 ContentUnavailableView("Nothing to Study", systemImage: "faceid")
             }
         }
+        .sheet(isPresented: $showReport) {
+            ExamReport(questions: Array(progress), currentIndex: $currentIndex)
+        }
         .onAppear {
             currentQuestion = questions[0]
+        }
+        .onChange(of: currentIndex) {
+            currentQuestion = questions[currentIndex]
         }
         .toolbar {
             ToolbarItemGroup {
                 Button {
-                    
+                    showNavigator.toggle()
+                } label: {
+                    Label("Exam Navigator", systemImage: "square.grid.3x3.fill")
+                }
+                .popover(isPresented: $showNavigator) {
+                    ExamNavigator(exam: exam, index: $currentIndex)
+                }
+                Button {
+                    showReport.toggle()
                 } label: {
                     Label("Show Report", systemImage: "printer.filled.and.paper")
                 }
                 Button {
                     if currentIndex != 0 {
                         currentIndex -= 1
-                        currentQuestion = questions[currentIndex]
                     }
                 } label: {
                     Label("Previous}", systemImage: "chevron.left")
@@ -59,26 +86,18 @@ struct ExaminationView: View {
                 Button {
                     if currentIndex != questions.count - 1 {
                         currentIndex += 1
-                        currentQuestion = questions[currentIndex]
                     }
                 } label: {
                     Label("Next", systemImage: "chevron.right")
                 }
-                .disabled(currentIndex == questions.count)
+                .disabled(currentIndex == questions.count - 1)
             }
         }
     }
 }
 
-struct ExamScreen: View {
-    var question: Question
-    var body: some View {
-        Text(question.prompt)
-//        switch question.rawAnswerType {
-//        case 0:
-//        case 1: Text("render")
-//        case 2: Text("render")
-//        default: EmptyView()
-//        }
-    }
+struct QuestionContainer: Identifiable, Hashable {
+    var id: UUID = UUID()
+    var number: Int
+    var status: QuestionStatus
 }
