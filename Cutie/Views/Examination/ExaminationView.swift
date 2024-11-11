@@ -20,7 +20,8 @@ struct ExaminationView: View {
     
     @State private var progress: Set<QuestionContainer> = []
     
-    let exam: Exam
+    let exam: Exam?
+    let speciality: Speciality?
     
     init(exam: Exam) {
         let id = exam.id
@@ -34,7 +35,18 @@ struct ExaminationView: View {
         }
         
         self.exam = exam
+        self.speciality = nil
+        _questions = Query(filter: predicate)
+    }
+    
+    init(speciality: Speciality) {
+        let rawSpec = speciality.rawValue
         
+        let predicate = #Predicate<Question> { question in
+            question.rawSpeciality == rawSpec
+        }
+        self.speciality = speciality
+        self.exam = nil
         _questions = Query(filter: predicate)
     }
     
@@ -68,7 +80,13 @@ struct ExaminationView: View {
                     Label("Exam Navigator", systemImage: "square.grid.3x3.fill")
                 }
                 .popover(isPresented: $showNavigator) {
-                    ExamNavigator(exam: exam, index: $currentIndex)
+                    if let exam {
+                        ExamNavigator(exam, index: $currentIndex)
+                    } else if let speciality {
+                        ExamNavigator(speciality, index: $currentIndex)
+                    } else {
+                        EmptyView()
+                    }
                 }
                 Button {
                     showReport.toggle()

@@ -83,7 +83,7 @@ struct ContentView: View {
                 case .exam(let exam):
                     ExaminationView(exam: exam)
                 case .quiz(let quiz):
-                    Text(quiz.label)
+                    ExaminationView(speciality: quiz)
                 case .none:
                     EmptyView()
                 }
